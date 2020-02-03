@@ -1,5 +1,5 @@
-import axios from 'axios';
 import React, {useState} from 'react';
+import firebase from 'react-native-firebase';
 import {
   StyleSheet,
   SafeAreaView,
@@ -9,26 +9,20 @@ import {
   TouchableOpacity,
 } from 'react-native';
 
-import {buildFetchConfig} from '../components/builders';
-
 export default function LoginScreen(props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = () => {
-    // props.navigation.navigate('Home');
-    const data = {email, password};
-    axios({
-      method: 'post',
-      url: 'http://127.0.0.1:8002/accounts/login/',
-      data,
-    })
+    firebase
+      .auth()
+      .signInWithEmailAndPassword(email, password)
       .then(response => {
-        Alert.alert('Success');
         props.navigation.navigate('Home');
       })
       .catch(error => {
-        console.log(error);
+        var errorMessage = error.message;
+        Alert.alert(errorMessage);
       });
   };
 
