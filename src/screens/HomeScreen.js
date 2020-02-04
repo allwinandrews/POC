@@ -9,6 +9,8 @@ import {
 } from 'react-native';
 import {Stopwatch} from 'react-native-stopwatch-timer';
 
+import AppLayout from '../components/AppLayout';
+
 export default function HomeScreen() {
   const [state, setState] = useState({
     stopwatchStart: false,
@@ -48,26 +50,28 @@ export default function HomeScreen() {
   const {container, center, buttonContainer, buttonText, showtime} = styles;
 
   return (
-    <SafeAreaView style={container}>
-      <View style={center}>
-        <Stopwatch
-          laps
-          msecs
-          start={stopwatchStart}
-          reset={stopwatchReset}
-          options={options}
-          getTime={getFormattedTime}
-        />
+    <AppLayout>
+      <View style={container}>
+        <View style={center}>
+          <Stopwatch
+            laps
+            msecs
+            start={stopwatchStart}
+            reset={stopwatchReset}
+            options={options}
+            getTime={getFormattedTime}
+          />
+        </View>
+        <TouchableOpacity style={buttonContainer} onPress={toggleStopwatch}>
+          <Text style={buttonText}>
+            {!stopwatchStart ? 'Check In' : 'Check Out'}
+          </Text>
+        </TouchableOpacity>
+        <View style={center}>
+          <Text style={showtime}>{showTime}</Text>
+        </View>
       </View>
-      <TouchableOpacity style={buttonContainer} onPress={toggleStopwatch}>
-        <Text style={buttonText}>
-          {!stopwatchStart ? 'Check In' : 'Check Out'}
-        </Text>
-      </TouchableOpacity>
-      <View style={center}>
-        <Text style={showtime}>{showTime}</Text>
-      </View>
-    </SafeAreaView>
+    </AppLayout>
   );
 }
 

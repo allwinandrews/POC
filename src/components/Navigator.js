@@ -5,11 +5,13 @@ import 'react-native-gesture-handler';
 
 import LoginScreen from '../screens/LoginScreen';
 import HomeScreen from '../screens/HomeScreen';
+import AddFormScreen from '../screens/AddFormScreen';
 
 const AppNavigator = createStackNavigator(
   {
     Home: HomeScreen,
     Login: LoginScreen,
+    AddForm: AddFormScreen,
   },
   {
     initialRouteName: 'Login',

@@ -26,26 +26,38 @@ export default function LoginScreen(props) {
       });
   };
 
+  function handleChange(event, name) {
+    if (name === 'email') {
+      setEmail(event);
+    } else {
+      setPassword(event);
+    }
+  }
+
+  const {input, container, buttonContainer, buttonText} = styles;
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={container}>
       <TextInput
-        style={styles.input}
-        onChangeText={text => setEmail(text)}
+        style={input}
+        onChangeText={event => handleChange(event, 'email')}
         value={email}
         placeholder="Email"
         placeholderTextColor="rgba(225,225,225,0.7)"
       />
       <TextInput
-        style={styles.input}
-        onChangeText={text => setPassword(text)}
+        style={input}
+        onChangeText={event => handleChange(event, 'password')}
         value={password}
         placeholder="Password"
         secureTextEntry={true}
         placeholderTextColor="rgba(225,225,225,0.7)"
-        name="password"
       />
-      <TouchableOpacity style={styles.buttonContainer} onPress={handleLogin}>
-        <Text style={styles.buttonText}>LOGIN</Text>
+      <TouchableOpacity
+        disabled={email === '' && password === '' ? true : false}
+        style={buttonContainer}
+        onPress={handleLogin}>
+        <Text style={buttonText}>LOGIN</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
