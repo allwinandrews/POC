@@ -54,7 +54,7 @@ export default function LoginScreen(props) {
         placeholderTextColor="rgba(225,225,225,0.7)"
       />
       <TouchableOpacity
-        disabled={email === '' && password === '' ? true : false}
+        disabled={email === '' || password === '' ? true : false}
         style={buttonContainer}
         onPress={handleLogin}>
         <Text style={buttonText}>LOGIN</Text>

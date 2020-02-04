@@ -3,9 +3,9 @@ import {createAppContainer} from 'react-navigation';
 import {createStackNavigator} from 'react-navigation-stack';
 import 'react-native-gesture-handler';
 
-import LoginScreen from '../screens/LoginScreen';
-import HomeScreen from '../screens/HomeScreen';
-import AddFormScreen from '../screens/AddFormScreen';
+import LoginScreen from '../../screens/LoginScreen';
+import HomeScreen from '../../screens/HomeScreen';
+import AddFormScreen from '../../screens/AddFormScreen';
 
 const AppNavigator = createStackNavigator(
   {

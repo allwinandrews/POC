@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 
-import AppLayout from '../components/AppLayout';
+import AppLayout from '../components/layout/AppLayout';
 
 export default function AddFormScreen() {
   return (

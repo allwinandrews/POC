@@ -9,9 +9,9 @@ import {
 } from 'react-native';
 import {Stopwatch} from 'react-native-stopwatch-timer';
 
-import AppLayout from '../components/AppLayout';
+import AppLayout from '../components/layout/AppLayout';
 
-export default function HomeScreen() {
+export default function HomeScreen(props) {
   const [state, setState] = useState({
     stopwatchStart: false,
     stopwatchReset: false,
@@ -48,10 +48,11 @@ export default function HomeScreen() {
 
   const {stopwatchStart, stopwatchReset} = state;
   const {container, center, buttonContainer, buttonText, showtime} = styles;
+  const {navigation} = props;
 
   return (
-    <AppLayout>
-      <View style={container}>
+    <>
+      <SafeAreaView style={container}>
         <View style={center}>
           <Stopwatch
             laps
@@ -70,8 +71,9 @@ export default function HomeScreen() {
         <View style={center}>
           <Text style={showtime}>{showTime}</Text>
         </View>
-      </View>
-    </AppLayout>
+      </SafeAreaView>
+      <AppLayout navigation={navigation} />
+    </>
   );
 }
 
@@ -80,7 +82,7 @@ const styles = StyleSheet.create({
   showtime: {color: '#fff', paddingTop: '40%', fontSize: 50},
   container: {
     padding: 20,
-    height: 729,
+    height: 674,
     backgroundColor: 'black',
     paddingTop: '55%',
   },
