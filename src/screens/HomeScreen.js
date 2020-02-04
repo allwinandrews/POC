@@ -9,7 +9,9 @@ import {
 } from 'react-native';
 import {Stopwatch} from 'react-native-stopwatch-timer';
 
-export default function HomeScreen() {
+import AppLayout from '../components/layout/AppLayout';
+
+export default function HomeScreen(props) {
   const [state, setState] = useState({
     stopwatchStart: false,
     stopwatchReset: false,
@@ -46,28 +48,32 @@ export default function HomeScreen() {
 
   const {stopwatchStart, stopwatchReset} = state;
   const {container, center, buttonContainer, buttonText, showtime} = styles;
+  const {navigation} = props;
 
   return (
-    <SafeAreaView style={container}>
-      <View style={center}>
-        <Stopwatch
-          laps
-          msecs
-          start={stopwatchStart}
-          reset={stopwatchReset}
-          options={options}
-          getTime={getFormattedTime}
-        />
-      </View>
-      <TouchableOpacity style={buttonContainer} onPress={toggleStopwatch}>
-        <Text style={buttonText}>
-          {!stopwatchStart ? 'Check In' : 'Check Out'}
-        </Text>
-      </TouchableOpacity>
-      <View style={center}>
-        <Text style={showtime}>{showTime}</Text>
-      </View>
-    </SafeAreaView>
+    <>
+      <SafeAreaView style={container}>
+        <View style={center}>
+          <Stopwatch
+            laps
+            msecs
+            start={stopwatchStart}
+            reset={stopwatchReset}
+            options={options}
+            getTime={getFormattedTime}
+          />
+        </View>
+        <TouchableOpacity style={buttonContainer} onPress={toggleStopwatch}>
+          <Text style={buttonText}>
+            {!stopwatchStart ? 'Check In' : 'Check Out'}
+          </Text>
+        </TouchableOpacity>
+        <View style={center}>
+          <Text style={showtime}>{showTime}</Text>
+        </View>
+      </SafeAreaView>
+      <AppLayout navigation={navigation} />
+    </>
   );
 }
 
@@ -76,7 +82,7 @@ const styles = StyleSheet.create({
   showtime: {color: '#fff', paddingTop: '40%', fontSize: 50},
   container: {
     padding: 20,
-    height: 729,
+    height: 674,
     backgroundColor: 'black',
     paddingTop: '55%',
   },
