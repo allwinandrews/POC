@@ -9,22 +9,22 @@ import {
   TouchableOpacity,
 } from 'react-native';
 
-export default function LoginScreen(props) {
+export default function LoginScreen({navigation}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = () => {
-    props.navigation.navigate('Home');
-    // firebase
-    //   .auth()
-    //   .signInWithEmailAndPassword(email, password)
-    //   .then(response => {
-    //     props.navigation.navigate('Home');
-    //   })
-    //   .catch(error => {
-    //     var errorMessage = error.message;
-    //     Alert.alert(errorMessage);
-    //   });
+    // navigation.navigate('Home');
+    firebase
+      .auth()
+      .signInWithEmailAndPassword(email, password)
+      .then(response => {
+        navigation.navigate('Home');
+      })
+      .catch(error => {
+        var errorMessage = error.message;
+        Alert.alert(errorMessage);
+      });
   };
 
   function handleChange(event, name) {

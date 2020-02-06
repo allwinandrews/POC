@@ -3,9 +3,7 @@ import {Footer, FooterTab, Button, Text} from 'native-base';
 import {Alert} from 'react-native';
 import firebase from 'react-native-firebase';
 
-export default function AppLayout(props) {
-  const {navigation} = props;
-
+export default function AppLayout({navigation}) {
   const logout = async () => {
     await firebase
       .auth()
@@ -30,9 +28,11 @@ export default function AppLayout(props) {
           <Button onPress={logout}>
             <Text>Log Out</Text>
           </Button>
-          <Button active onPress={addform}>
-            <Text>Add Details</Text>
-          </Button>
+          {navigation.state.routeName !== 'Add Labour' && (
+            <Button active onPress={addform}>
+              <Text>Add Labour</Text>
+            </Button>
+          )}
         </FooterTab>
       </Footer>
     </>

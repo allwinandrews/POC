@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   SafeAreaView,
   Text,
@@ -9,15 +9,27 @@ import {
   Picker,
 } from 'react-native';
 import TimePicker from 'react-native-simple-time-picker';
+import RNLocation from 'react-native-location';
+import firebase from 'react-native-firebase';
 
-export default function AddLabourScreen() {
-  const [state, setState] = useState({
-    startTime: '0',
-    endTime: '0',
-    unionCode: '',
+import AppLayout from '../components/layout/AppLayout';
+
+export default function AddLabourScreen({navigation}) {
+  const [location, setLocation] = useState({});
+  const initialState = {
+    startTime: '00:00',
+    endTime: '00:00',
+    unionCode: '1',
     taskId: '',
     taskDescription: '',
-  });
+    location: '',
+  };
+  const [state, setState] = useState(initialState);
+  const [startHours, setStartHours] = useState(0);
+  const [endHours, setEndHours] = useState(0);
+  const [startMins, setStartMins] = useState(0);
+  const [endMins, setEndMins] = useState(0);
+  const [date, setDate] = useState(0);
 
   const {
     buttonText,
@@ -31,67 +43,128 @@ export default function AddLabourScreen() {
   function handleChange(name, value) {
     const data = {
       ...state,
-      ...{[name]: value},
+      [name]: value,
     };
     setState(data);
   }
 
-  function handleSubmit() {
-    console.log(state);
+  function firstTimePicker(hours, mins) {
+    setStartHours(hours);
+    setStartMins(mins);
+    handleChange(
+      'startTime',
+      `${hours > 9 ? hours : '0' + hours}:${mins > 9 ? mins : '0' + mins}`,
+    );
   }
 
+  function secondTimePicker(hours, mins) {
+    setEndHours(hours);
+    setEndMins(mins);
+    handleChange(
+      'endTime',
+      `${hours > 9 ? hours : '0' + hours}:${mins > 9 ? mins : '0' + mins}`,
+    );
+  }
+
+  function handleSubmit() {
+    const ref = firebase.firestore().collection(date);
+    ref.add(state);
+    setStartHours(0);
+    setStartMins(0);
+    setEndHours(0);
+    setEndMins(0);
+    const data = {...initialState, location};
+    setState(data);
+    navigation.navigate('Edit Labour', data);
+  }
+
+  useEffect(() => {
+    var date = new Date().getDate(),
+      month = new Date().getMonth() + 1,
+      year = new Date().getFullYear();
+    const refDate = date + '-' + month + '-' + year;
+    setDate(refDate);
+    // const ref = firebase.firestore().collection(refDate);
+    // ref.onSnapshot(querySnapshot => {
+    //   querySnapshot.forEach(doc => {
+    //     console.log(doc.data());
+    //   });
+    // });
+    RNLocation.configure({
+      distanceFilter: 5.0,
+    });
+
+    RNLocation.requestPermission({
+      ios: 'whenInUse',
+      android: {
+        detail: 'coarse',
+      },
+    }).then(granted => {
+      if (granted) {
+        RNLocation.subscribeToLocationUpdates(locations => {
+          const data = {
+            ...state,
+            location: locations[0],
+          };
+          setLocation(locations[0]);
+          setState(data);
+        });
+      }
+    });
+  }, []);
+
+  const {taskDescription, taskId, unionCode} = state;
   return (
-    <SafeAreaView style={container}>
-      <View style={view}>
-        <Text>Start Time</Text>
-        <TimePicker
-          selectedHours={state.startHours}
-          selectedMinutes={state.startMins}
-          onChange={(hours, mins) => {
-            handleChange('startTime', `${hours}:${mins}`);
-          }}
+    <>
+      <SafeAreaView style={container}>
+        <View style={view}>
+          <Text>Start Time</Text>
+          <TimePicker
+            selectedHours={startHours}
+            selectedMinutes={startMins}
+            onChange={firstTimePicker}
+          />
+        </View>
+        <View style={view}>
+          <Text>End Time</Text>
+          <TimePicker
+            selectedHours={endHours}
+            selectedMinutes={endMins}
+            onChange={secondTimePicker}
+          />
+        </View>
+        <View style={view}>
+          <Picker
+            selectedValue={unionCode}
+            onValueChange={value => {
+              handleChange('unionCode', value);
+            }}>
+            <Picker.Item label="CODE 1" value="1" />
+            <Picker.Item label="CODE 2" value="2" />
+          </Picker>
+        </View>
+        <TextInput
+          style={input}
+          onChangeText={event => handleChange('taskId', event)}
+          value={taskId}
+          placeholder="Task ID"
+          placeholderTextColor="rgba(225,225,225,0.7)"
         />
-      </View>
-      <View style={view}>
-        <Text>End Time</Text>
-        <TimePicker
-          selectedHours={state.endHours}
-          selectedMinutes={state.endMins}
-          onChange={(hours, mins) => {
-            handleChange('endTime', `${hours}:${mins}`);
-          }}
+        <TextInput
+          style={textArea}
+          multiline={true}
+          numberOfLines={4}
+          onChangeText={event => handleChange('taskDescription', event)}
+          value={taskDescription}
+          placeholder="Task Description"
+          placeholderTextColor="rgba(225,225,225,0.7)"
         />
-      </View>
-      <View style={view}>
-        <Picker
-          selectedValue={state.unionCode}
-          onValueChange={itemValue => {
-            handleChange('unionCode', itemValue);
-          }}>
-          <Picker.Item label="CODE 1" value="1" />
-          <Picker.Item label="CODE 2" value="2" />
-        </Picker>
-      </View>
-      <TextInput
-        style={input}
-        onChangeText={event => handleChange('taskId', event)}
-        value={state.taskId}
-        placeholder="Task ID"
-        placeholderTextColor="rgba(225,225,225,0.7)"
-      />
-      <TextInput
-        style={textArea}
-        multiline={true}
-        numberOfLines={4}
-        onChangeText={event => handleChange('taskDescription', event)}
-        value={state.taskDescription}
-        placeholder="Task Description"
-        placeholderTextColor="rgba(225,225,225,0.7)"
-      />
-      <TouchableOpacity style={buttonContainer} onPress={handleSubmit}>
-        <Text style={buttonText}>SUBMIT</Text>
-      </TouchableOpacity>
-    </SafeAreaView>
+        <TouchableOpacity style={buttonContainer} onPress={handleSubmit}>
+          <Text style={buttonText}>SUBMIT</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+      <AppLayout navigation={navigation} />
+    </>
   );
 }
 
@@ -99,7 +172,7 @@ export default function AddLabourScreen() {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    height: 729,
+    height: 674,
     backgroundColor: 'black',
     paddingTop: '38%',
   },
