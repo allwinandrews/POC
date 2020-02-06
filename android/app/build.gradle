@@ -133,6 +133,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true  // needed for firestore:
     }
     splits {
         abi {
@@ -179,6 +180,7 @@ android {
 }
 
 dependencies {
+    implementation project(':react-native-location')
     implementation project(':react-native-firebase')
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "com.facebook.react:react-native:+"
@@ -188,7 +190,11 @@ dependencies {
     implementation "com.google.firebase:firebase-core:16.0.9"
     implementation 'com.google.firebase:firebase-analytics:17.2.2'
     implementation 'com.google.firebase:firebase-auth:19.2.0'
-
+    implementation "com.google.firebase:firebase-firestore:19.0.0"
+    // Location dependencies
+    implementation "com.google.android.gms:play-services-base:16.0.1"
+    implementation "com.google.android.gms:play-services-location:16.0.0"
+    
     if (enableHermes) {
         def hermesPath = "../../node_modules/hermes-engine/android/";
         debugImplementation files(hermesPath + "hermes-debug.aar")

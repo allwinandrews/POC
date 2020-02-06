@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   SafeAreaView,
   View,
@@ -8,68 +8,69 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {Stopwatch} from 'react-native-stopwatch-timer';
+import firebase from 'react-native-firebase';
 
 import AppLayout from '../components/layout/AppLayout';
 
-export default function HomeScreen(props) {
+export default function HomeScreen({navigation}) {
   const [state, setState] = useState({
-    stopwatchStart: false,
-    stopwatchReset: false,
+    checkedOut: true,
   });
-  const [currentTime, setCurrentTime] = useState('');
+  const [refDate, setRefDate] = useState('');
   const [showTime, setShowTime] = useState('');
 
+  useEffect(() => {
+    const useToday = new Date();
+    const date =
+      useToday.getDate() +
+      '-' +
+      (useToday.getMonth() + 1) +
+      '-' +
+      useToday.getFullYear();
+    setRefDate(date);
+    const ref = firebase
+      .firestore()
+      .collection(date)
+      .orderBy('time', 'desc');
+    ref.onSnapshot(querySnapshot => {
+      querySnapshot.forEach(doc => {
+        console.log(doc.data());
+      });
+    });
+  }, []);
+
   function toggleStopwatch() {
+    const {checkedOut} = state;
+    const today = new Date();
+    const time =
+      today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds();
+    setShowTime(time);
+    const ref = firebase.firestore().collection(refDate);
     const data = {
-      stopwatchStart: !stopwatchStart,
-      stopwatchReset: false,
+      checkedOut: !checkedOut,
+      time,
     };
+    ref.add(data);
+    console.log(data);
     setState(data);
-    setShowTime(currentTime);
   }
 
-  function getFormattedTime(time) {
-    setCurrentTime(time);
-  }
-
-  const options = {
-    container: {
-      backgroundColor: '#000',
-      padding: 5,
-      borderRadius: 5,
-      width: 220,
-    },
-    text: {
-      fontSize: 30,
-      color: '#FFF',
-      marginLeft: 7,
-    },
-  };
-
-  const {stopwatchStart, stopwatchReset} = state;
+  const {checkedOut} = state;
   const {container, center, buttonContainer, buttonText, showtime} = styles;
-  const {navigation} = props;
 
   return (
     <>
       <SafeAreaView style={container}>
-        <View style={center}>
-          <Stopwatch
-            laps
-            msecs
-            start={stopwatchStart}
-            reset={stopwatchReset}
-            options={options}
-            getTime={getFormattedTime}
-          />
-        </View>
         <TouchableOpacity style={buttonContainer} onPress={toggleStopwatch}>
           <Text style={buttonText}>
-            {!stopwatchStart ? 'Check In' : 'Check Out'}
+            {checkedOut ? 'Check In' : 'Check Out'}
           </Text>
         </TouchableOpacity>
         <View style={center}>
-          <Text style={showtime}>{showTime}</Text>
+          <Text style={showtime}>
+            {showTime !== '' ? 'Checked Out at' : 'Checked In at'}
+            {showTime}
+          </Text>
         </View>
       </SafeAreaView>
       <AppLayout navigation={navigation} />
@@ -79,7 +80,12 @@ export default function HomeScreen(props) {
 
 const styles = StyleSheet.create({
   center: {alignItems: 'center'},
-  showtime: {color: '#fff', paddingTop: '40%', fontSize: 50},
+  showtime: {
+    textAlign: 'center',
+    color: '#fff',
+    paddingTop: '40%',
+    fontSize: 50,
+  },
   container: {
     padding: 20,
     height: 674,
