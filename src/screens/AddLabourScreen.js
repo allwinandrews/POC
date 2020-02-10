@@ -1,12 +1,14 @@
 import React, {useState, useEffect} from 'react';
 import {
-  SafeAreaView,
+  Keyboard,
   Text,
   View,
+  KeyboardAvoidingView,
   TextInput,
   TouchableOpacity,
   StyleSheet,
   Picker,
+  Image,
 } from 'react-native';
 import TimePicker from 'react-native-simple-time-picker';
 import RNLocation from 'react-native-location';
@@ -17,9 +19,9 @@ import AppLayout from '../components/layout/AppLayout';
 export default function AddLabourScreen({navigation}) {
   const [location, setLocation] = useState({});
   const initialState = {
-    startTime: '00:00',
-    endTime: '00:00',
-    unionCode: '1',
+    startTime: '',
+    endTime: '',
+    unionCode: '0',
     taskId: '',
     taskDescription: '',
     location: '',
@@ -29,7 +31,7 @@ export default function AddLabourScreen({navigation}) {
   const [endHours, setEndHours] = useState(0);
   const [startMins, setStartMins] = useState(0);
   const [endMins, setEndMins] = useState(0);
-  const [date, setDate] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   const {
     buttonText,
@@ -38,6 +40,7 @@ export default function AddLabourScreen({navigation}) {
     view,
     input,
     container,
+    image,
   } = styles;
 
   function handleChange(name, value) {
@@ -67,29 +70,25 @@ export default function AddLabourScreen({navigation}) {
   }
 
   function handleSubmit() {
-    const ref = firebase.firestore().collection(date);
-    ref.add(state);
+    Keyboard.dismiss();
+    setLoading(true);
+    var date = new Date().getDate(),
+      month = new Date().getMonth() + 1,
+      year = new Date().getFullYear();
+    const refDate = date + '-' + month + '-' + year;
+    const ref = firebase.firestore().collection(`labour details(${refDate})`);
+    ref.add(state).then(() => setLoading(false));
     setStartHours(0);
     setStartMins(0);
     setEndHours(0);
     setEndMins(0);
     const data = {...initialState, location};
     setState(data);
-    navigation.navigate('Edit Labour', data);
+    // navigation.navigate('Edit Labour', data);
+    navigation.navigate('Home', data);
   }
 
   useEffect(() => {
-    var date = new Date().getDate(),
-      month = new Date().getMonth() + 1,
-      year = new Date().getFullYear();
-    const refDate = date + '-' + month + '-' + year;
-    setDate(refDate);
-    // const ref = firebase.firestore().collection(refDate);
-    // ref.onSnapshot(querySnapshot => {
-    //   querySnapshot.forEach(doc => {
-    //     console.log(doc.data());
-    //   });
-    // });
     RNLocation.configure({
       distanceFilter: 5.0,
     });
@@ -113,56 +112,79 @@ export default function AddLabourScreen({navigation}) {
     });
   }, []);
 
-  const {taskDescription, taskId, unionCode} = state;
+  const {taskDescription, taskId, unionCode, startTime, endTime} = state;
   return (
     <>
-      <SafeAreaView style={container}>
-        <View style={view}>
-          <Text>Start Time</Text>
-          <TimePicker
-            selectedHours={startHours}
-            selectedMinutes={startMins}
-            onChange={firstTimePicker}
-          />
-        </View>
-        <View style={view}>
-          <Text>End Time</Text>
-          <TimePicker
-            selectedHours={endHours}
-            selectedMinutes={endMins}
-            onChange={secondTimePicker}
-          />
-        </View>
-        <View style={view}>
-          <Picker
-            selectedValue={unionCode}
-            onValueChange={value => {
-              handleChange('unionCode', value);
-            }}>
-            <Picker.Item label="CODE 1" value="1" />
-            <Picker.Item label="CODE 2" value="2" />
-          </Picker>
-        </View>
-        <TextInput
-          style={input}
-          onChangeText={event => handleChange('taskId', event)}
-          value={taskId}
-          placeholder="Task ID"
-          placeholderTextColor="rgba(225,225,225,0.7)"
-        />
-        <TextInput
-          style={textArea}
-          multiline={true}
-          numberOfLines={4}
-          onChangeText={event => handleChange('taskDescription', event)}
-          value={taskDescription}
-          placeholder="Task Description"
-          placeholderTextColor="rgba(225,225,225,0.7)"
-        />
-        <TouchableOpacity style={buttonContainer} onPress={handleSubmit}>
-          <Text style={buttonText}>SUBMIT</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
+      <KeyboardAvoidingView style={container} behavior="padding" enabled>
+        {loading ? (
+          <View>
+            <Image
+              style={image}
+              source={require('../static/images/Spinner-1s-200px.png')}
+            />
+          </View>
+        ) : (
+          <>
+            <View style={view}>
+              <Text>Start Time</Text>
+              <TimePicker
+                selectedHours={startHours}
+                selectedMinutes={startMins}
+                onChange={firstTimePicker}
+              />
+            </View>
+            <View style={view}>
+              <Text>End Time</Text>
+              <TimePicker
+                selectedHours={endHours}
+                selectedMinutes={endMins}
+                onChange={secondTimePicker}
+              />
+            </View>
+            <View style={view}>
+              <Picker
+                selectedValue={unionCode}
+                onValueChange={value => {
+                  handleChange('unionCode', value);
+                }}>
+                <Picker.Item label="Select Union Code" value="0" />
+                <Picker.Item label="CODE 1" value="1" />
+                <Picker.Item label="CODE 2" value="2" />
+              </Picker>
+            </View>
+            <TextInput
+              style={input}
+              onChangeText={event => handleChange('taskId', event)}
+              value={taskId}
+              placeholder="Task ID"
+              placeholderTextColor="rgba(225,225,225,0.7)"
+            />
+            <TextInput
+              style={textArea}
+              multiline={true}
+              numberOfLines={4}
+              onChangeText={event => handleChange('taskDescription', event)}
+              value={taskDescription}
+              placeholder="Task Description"
+              placeholderTextColor="rgba(225,225,225,0.7)"
+            />
+            <TouchableOpacity
+              disabled={
+                taskDescription === '' ||
+                taskId === '' ||
+                startTime === '' ||
+                endTime === '' ||
+                unionCode === '0'
+                  ? true
+                  : false
+              }
+              style={buttonContainer}
+              onPress={handleSubmit}>
+              <Text style={buttonText}>SUBMIT</Text>
+            </TouchableOpacity>
+          </>
+        )}
+      </KeyboardAvoidingView>
       <AppLayout navigation={navigation} />
     </>
   );
@@ -170,11 +192,22 @@ export default function AddLabourScreen({navigation}) {
 
 // define your styles
 const styles = StyleSheet.create({
+  image: {
+    width: 100,
+    height: 100,
+    display: 'flex',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    paddingTop: '50%',
+  },
   container: {
     padding: 20,
     height: 674,
     backgroundColor: 'black',
-    paddingTop: '38%',
+    paddingTop: '20%',
+    flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'center',
   },
   input: {
     height: 40,
