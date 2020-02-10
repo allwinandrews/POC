@@ -23,8 +23,8 @@ export default function LoginScreen({navigation}) {
       .signInWithEmailAndPassword(email, password)
       .then(response => {
         setLoading(false);
-        // setEmail('');
-        // setPassword('');
+        setEmail('');
+        setPassword('');
         navigation.navigate('Home');
       })
       .catch(error => {
@@ -41,14 +41,7 @@ export default function LoginScreen({navigation}) {
     }
   }
 
-  const {
-    input,
-    container,
-    buttonContainer,
-    buttonText,
-    image,
-    imageSize,
-  } = styles;
+  const {input, container, buttonContainer, buttonText, image} = styles;
 
   return (
     <SafeAreaView style={container}>
