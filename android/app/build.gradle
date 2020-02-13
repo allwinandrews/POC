@@ -145,9 +145,9 @@ android {
     }
     signingConfigs {
         release {
-            storeFile file('your_key_name.keystore')
+            storeFile file('poc.keystore')
             storePassword 'password'
-            keyAlias 'admin'
+            keyAlias 'poc_alias'
             keyPassword 'password'
         }
         debug {
@@ -167,6 +167,7 @@ android {
             signingConfig signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            signingConfig signingConfigs.release
         }
     }
     // applicationVariants are e.g. debug, release
@@ -186,7 +187,6 @@ android {
 }
 
 dependencies {
-    implementation project(':react-native-location')
     implementation project(':react-native-firebase')
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "com.facebook.react:react-native:+"

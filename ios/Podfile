@@ -36,8 +36,6 @@ target 'POC' do
 
   pod 'RNFirebase', :path => '../node_modules/react-native-firebase'
 
-  pod 'react-native-location', :path => '../node_modules/react-native-location'
-
   target 'POCTests' do
     inherit! :search_paths
     # Pods for testing

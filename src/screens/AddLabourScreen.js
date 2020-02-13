@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {
   Keyboard,
+  Button,
   Text,
   View,
   KeyboardAvoidingView,
@@ -9,22 +10,24 @@ import {
   StyleSheet,
   Picker,
   Image,
+  PermissionsAndroid,
+  Platform,
+  ToastAndroid,
 } from 'react-native';
 import TimePicker from 'react-native-simple-time-picker';
-import RNLocation from 'react-native-location';
 import firebase from 'react-native-firebase';
+import Geolocation from 'react-native-geolocation-service';
 
 import AppLayout from '../components/layout/AppLayout';
 
 export default function AddLabourScreen({navigation}) {
-  const [location, setLocation] = useState({});
+  var watchId = null;
   const initialState = {
     startTime: '',
     endTime: '',
     unionCode: '0',
     taskId: '',
     taskDescription: '',
-    location: '',
   };
   const [state, setState] = useState(initialState);
   const [startHours, setStartHours] = useState(0);
@@ -32,6 +35,7 @@ export default function AddLabourScreen({navigation}) {
   const [startMins, setStartMins] = useState(0);
   const [endMins, setEndMins] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [location, setLocation] = useState({});
 
   const {
     buttonText,
@@ -42,6 +46,96 @@ export default function AddLabourScreen({navigation}) {
     container,
     image,
   } = styles;
+
+  async function hasLocationPermission() {
+    if (
+      Platform.OS === 'ios' ||
+      (Platform.OS === 'android' && Platform.Version < 23)
+    ) {
+      return true;
+    }
+
+    const hasPermission = await PermissionsAndroid.check(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+    );
+
+    if (hasPermission) return true;
+
+    const status = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+    );
+
+    if (status === PermissionsAndroid.RESULTS.GRANTED) return true;
+
+    if (status === PermissionsAndroid.RESULTS.DENIED) {
+      ToastAndroid.show(
+        'Location permission denied by user.',
+        ToastAndroid.LONG,
+      );
+    } else if (status === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
+      ToastAndroid.show(
+        'Location permission revoked by user.',
+        ToastAndroid.LONG,
+      );
+    }
+
+    return false;
+  }
+
+  async function getLocation() {
+    const locationPermission = await hasLocationPermission();
+
+    if (!locationPermission) return;
+
+    setLoading(true);
+    Geolocation.getCurrentPosition(
+      position => {
+        setLocation(position);
+        setLoading(false);
+      },
+      error => {
+        setLocation(error);
+        setLoading(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 10000,
+        distanceFilter: 50,
+        forceRequestLocation: true,
+      },
+    );
+  }
+
+  async function getLocationUpdates() {
+    const locationPermission = await hasLocationPermission();
+
+    if (!locationPermission) return;
+    watchId = Geolocation.watchPosition(
+      position => {
+        setLocation(position);
+      },
+      error => {
+        setLocation(error);
+      },
+      {
+        enableHighAccuracy: true,
+        distanceFilter: 0,
+        interval: 5000,
+        fastestInterval: 2000,
+      },
+    );
+  }
+
+  function removeLocationUpdates() {
+    if (watchId !== null) {
+      Geolocation.clearWatch(watchId);
+    }
+  }
+
+  useEffect(() => {
+    getLocationUpdates();
+  }, []);
 
   function handleChange(name, value) {
     const data = {
@@ -77,40 +171,20 @@ export default function AddLabourScreen({navigation}) {
       year = new Date().getFullYear();
     const refDate = date + '-' + month + '-' + year;
     const ref = firebase.firestore().collection(`labour details(${refDate})`);
-    ref.add(state).then(() => setLoading(false));
+    const data = {
+      ...state,
+      location,
+    };
+    ref.add(data).then(() => setLoading(false));
     setStartHours(0);
     setStartMins(0);
     setEndHours(0);
     setEndMins(0);
-    const data = {...initialState, location};
-    setState(data);
+    setState(initialState);
     // navigation.navigate('Edit Labour', data);
-    navigation.navigate('Home', data);
+    navigation.navigate('Home');
+    removeLocationUpdates();
   }
-
-  useEffect(() => {
-    RNLocation.configure({
-      distanceFilter: 5.0,
-    });
-
-    RNLocation.requestPermission({
-      ios: 'whenInUse',
-      android: {
-        detail: 'coarse',
-      },
-    }).then(granted => {
-      if (granted) {
-        RNLocation.subscribeToLocationUpdates(locations => {
-          const data = {
-            ...state,
-            location: locations[0],
-          };
-          setLocation(locations[0]);
-          setState(data);
-        });
-      }
-    });
-  }, []);
 
   const {taskDescription, taskId, unionCode, startTime, endTime} = state;
   return (
